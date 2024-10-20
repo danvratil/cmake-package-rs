@@ -166,6 +166,7 @@ function(resolve_deps_recursively)
     set(single_value_props
         NAME
         LOCATION
+        IMPORTED_NO_SONAME
     )
     set(multi_value_props
         INTERFACE_COMPILE_DEFINITIONS
