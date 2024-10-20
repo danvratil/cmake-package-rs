@@ -222,8 +222,8 @@ fn link_name(lib: &str) -> Option<&str> {
 
 
 #[cfg(target_os = "windows")]
-fn link_name(lib: &str) -> Result<&str, Error> {
-    Ok(lib)
+fn link_name(lib: &str) -> Option<&str> {
+    Some(lib)
 }
 
 impl CMakeTarget {
