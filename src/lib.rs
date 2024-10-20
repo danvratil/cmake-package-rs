@@ -220,6 +220,7 @@ fn link_name(lib: &str) -> Option<&str> {
     regex.captures(lib)?.get(1).map(|f| f.as_str())
 }
 
+
 #[cfg(target_os = "windows")]
 fn link_name(lib: &str) -> Result<&str, Error> {
     Ok(lib)

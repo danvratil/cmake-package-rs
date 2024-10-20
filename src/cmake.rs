@@ -240,7 +240,7 @@ impl From<PropertyValue> for Vec<String> {
     fn from(value: PropertyValue) -> Self {
         match value {
             PropertyValue::String(value) => vec![value],
-            PropertyValue::Target(target) => match target.location {
+            PropertyValue::Target(target) => match target.imported_location {
                 Some(location) => vec![location],
                 None => vec![],
             }
@@ -261,15 +261,24 @@ impl From<PropertyValue> for Vec<String> {
 #[serde(default, rename_all = "UPPERCASE")]
 struct Target {
     name: String,
-    location: Option<String>,
-    #[serde(rename = "LOCATION_Release")]
-    location_release: Option<String>,
-    #[serde(rename = "LOCATION_Debug")]
-    location_debug: Option<String>,
-    #[serde(rename = "LOCATION_RelWithDebInfo")]
-    location_relwithdebinfo: Option<String>,
-    #[serde(rename = "LOCATION_MinSizeRel")]
-    location_minsizerel: Option<String>,
+    imported_location: Option<String>,
+    #[serde(rename = "IMPORTED_LOCATION_Release")]
+    imported_location_release: Option<String>,
+    #[serde(rename = "IMPORTED_LOCATION_Debug")]
+    imported_location_debug: Option<String>,
+    #[serde(rename = "IMPORTED_LOCATION_RelWithDebInfo")]
+    imported_location_relwithdebinfo: Option<String>,
+    #[serde(rename = "IMPORTED_LOCATION_MinSizeRel")]
+    imported_location_minsizerel: Option<String>,
+    imported_implib: Option<String>,
+    #[serde(rename = "IMPORTED_IMPLIB_Release")]
+    imported_implib_release: Option<String>,
+    #[serde(rename = "IMPORTED_IMPLIB_Debug")]
+    imported_implib_debug: Option<String>,
+    #[serde(rename = "IMPORTED_IMPLIB_RelWithDebInfo")]
+    imported_implib_relwithdebinfo: Option<String>,
+    #[serde(rename = "IMPORTED_IMPLIB_MinSizeRel")]
+    imported_implib_minsizerel: Option<String>,
     interface_compile_definitions: Option<Vec<String>>,
     interface_compile_options: Option<Vec<String>>,
     interface_include_directories: Option<Vec<String>>,
@@ -331,17 +340,33 @@ fn collect_from_targets_unique<'a>(
 }
 
 fn location_for_build_type(build_type: CMakeBuildType, target: &Target) -> Option<String> {
-    match build_type {
-        CMakeBuildType::Debug => target.location_debug.clone().or(target.location.clone()),
-        CMakeBuildType::Release => target.location_release.clone().or(target.location.clone()),
-        CMakeBuildType::RelWithDebInfo => target
-            .location_relwithdebinfo
-            .clone()
-            .or(target.location.clone()),
-        CMakeBuildType::MinSizeRel => target
-            .location_minsizerel
-            .clone()
-            .or(target.location.clone()),
+    if cfg!(target_os = "windows") {
+        match build_type {
+            CMakeBuildType::Debug => target.imported_implib_debug.clone().or(target.imported_implib.clone()),
+            CMakeBuildType::Release => target.imported_implib_release.clone().or(target.imported_implib.clone()),
+            CMakeBuildType::RelWithDebInfo => target
+                .imported_implib_relwithdebinfo
+                .clone()
+                .or(target.imported_implib.clone()),
+            CMakeBuildType::MinSizeRel => target
+                .imported_implib_minsizerel
+                .clone()
+                .or(target.imported_implib.clone()),
+
+        }
+    } else {
+        match build_type {
+            CMakeBuildType::Debug => target.imported_location_debug.clone().or(target.imported_location.clone()),
+            CMakeBuildType::Release => target.imported_location_release.clone().or(target.imported_location.clone()),
+            CMakeBuildType::RelWithDebInfo => target
+                .imported_location_relwithdebinfo
+                .clone()
+                .or(target.imported_location.clone()),
+            CMakeBuildType::MinSizeRel => target
+                .imported_location_minsizerel
+                .clone()
+                .or(target.imported_location.clone()),
+        }
     }
 }
 
@@ -421,7 +446,7 @@ pub(crate) fn find_target(
             eprintln!("Failed to parse target JSON: {:?}", e);
         })
         .ok()?;
-
+    println!("Target: {:?}", target);
     Some(target.into_cmake_target(build_type))
 }
 
@@ -436,11 +461,11 @@ mod testing {
     fn from_target() {
         let target = Target {
             name: "my_target".to_string(),
-            location: Some("/path/to/target.so".to_string()),
-            location_release: None,
-            location_debug: None,
-            location_minsizerel: None,
-            location_relwithdebinfo: None,
+            imported_location: Some("/path/to/target.so".to_string()),
+            imported_location_release: None,
+            imported_location_debug: None,
+            imported_location_minsizerel: None,
+            imported_location_relwithdebinfo: None,
             interface_compile_definitions: Some(vec!["DEFINE1".to_string(), "DEFINE2".to_string()]),
             interface_compile_options: Some(vec!["-O2".to_string(), "-Wall".to_string()]),
             interface_include_directories: Some(vec!["/path/to/include".to_string()]),
@@ -451,11 +476,11 @@ mod testing {
                 PropertyValue::String("library2".to_string()),
                 PropertyValue::Target(Target {
                     name: "dependency".to_string(),
-                    location: Some("/path/to/dependency.so".to_string()),
-                    location_release: None,
-                    location_debug: None,
-                    location_minsizerel: None,
-                    location_relwithdebinfo: None,
+                    imported_location: Some("/path/to/dependency.so".to_string()),
+                    imported_location_release: None,
+                    imported_location_debug: None,
+                    imported_location_minsizerel: None,
+                    imported_location_relwithdebinfo: None,
                     interface_compile_definitions: Some(vec!["DEFINE3".to_string()]),
                     interface_compile_options: Some(vec!["-O3".to_string()]),
                     interface_include_directories: Some(vec![
@@ -507,11 +532,11 @@ mod testing {
     fn from_debug_target() {
         let target = Target {
             name: "test_target".to_string(),
-            location: Some("/path/to/target.so".to_string()),
-            location_debug: Some("/path/to/target_debug.so".to_string()),
-            location_minsizerel: None,
-            location_relwithdebinfo: None,
-            location_release: None,
+            imported_location: Some("/path/to/target.so".to_string()),
+            imported_location_debug: Some("/path/to/target_debug.so".to_string()),
+            imported_location_minsizerel: None,
+            imported_location_relwithdebinfo: None,
+            imported_location_release: None,
             interface_compile_definitions: None,
             interface_compile_options: None,
             interface_include_directories: None,
@@ -546,7 +571,7 @@ mod testing {
 "#;
         let target: Target = serde_json::from_str(json).expect("Failed to parse JSON");
         assert_eq!(target.name, "OpenSSL::SSL");
-        assert_eq!(target.location, Some("/usr/lib/libssl.so".to_string()));
+        assert_eq!(target.imported_location, Some("/usr/lib/libssl.so".to_string()));
         assert_eq!(
             target.interface_include_directories,
             Some(vec!["/usr/include".to_string()])
@@ -563,7 +588,7 @@ mod testing {
             PropertyValue::Target(sub_target) => {
                 assert_eq!(sub_target.name, "OpenSSL::Crypto");
                 assert_eq!(
-                    sub_target.location,
+                    sub_target.imported_location,
                     Some("/usr/lib/libcrypto.so".to_string())
                 );
             }

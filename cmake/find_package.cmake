@@ -165,7 +165,8 @@ function(resolve_deps_recursively)
     cmake_parse_arguments(ARG "" "TARGET;OUTPUT_JSON" "" ${ARGN})
     set(single_value_props
         NAME
-        LOCATION
+        IMPORTED_LOCATION
+        IMPORTED_IMPLIB
         IMPORTED_NO_SONAME
     )
     set(multi_value_props
@@ -179,7 +180,8 @@ function(resolve_deps_recursively)
         INTERFACE_LINK_OPTIONS
     )
     set(cfg_props
-        LOCATION
+        IMPORTED_LOCATION
+        IMPORTED_IMPLIB
     )
     set(cfg_types
         Release
