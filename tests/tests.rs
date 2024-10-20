@@ -80,7 +80,6 @@ fn test_find_openssl_release() {
     assert_eq!(target.name, "OpenSSL::SSL");
     if cfg!(target_os = "linux") {
         assert_eq!(target.include_directories, ["/usr/include"]);
-        assert!(target.location.unwrap().contains("libssl.so"));
         assert_eq!(target.link_libraries.len(), 2);
         // The actual path will vary depending on the system, and the library may itself may have a
         // soname, so we just check for the presence of the library name.
@@ -97,7 +96,6 @@ fn test_find_openssl_release() {
             target.include_directories,
             ["C:/Program Files/OpenSSL-Win64/include"]
         );
-        assert!(target.location.unwrap().contains("libssl64MD.lib"));
         assert!(target.link_libraries.len() >= 2);
         assert!(target
             .link_libraries
@@ -135,7 +133,6 @@ fn test_find_qt_release() {
         .expect("Failed to find Qt6::Core target");
     assert_eq!(core.name, "Qt6::Core");
     if cfg!(target_os = "linux") {
-        assert!(core.location.unwrap().contains("libQt6Core.so"));
         assert_eq!(
             core.include_directories,
             vec![
@@ -145,11 +142,10 @@ fn test_find_qt_release() {
             ]
         );
     } else if cfg!(target_os = "windows") {
-        assert!(core.location.unwrap().contains("Qt6Core.dll"));
         for def in ["QT_CORE_LIB", "WIN32", "WIN64"] {
             assert!(core.compile_definitions.contains(&def.to_string()));
         }
-        for lib in ["Qt6Core.dll", "mpr", "userenv"] {
+        for lib in ["Qt6Core.lib", "mpr", "userenv"] {
             assert!(core.link_libraries.iter().any(|l| l.contains(lib)))
         }
         assert_eq!(
@@ -168,7 +164,6 @@ fn test_find_qt_release() {
     println!("gui: {:?}", gui);
     assert_eq!(gui.name, "Qt6::Gui");
     if cfg!(target_os = "linux") {
-        assert!(gui.location.unwrap().contains("libQt6Gui.so"));
         assert_eq!(
             gui.compile_definitions,
             ["QT_CORE_LIB".to_string(), "QT_GUI_LIB".to_string()]
@@ -187,11 +182,10 @@ fn test_find_qt_release() {
             ]
         );
     } else if cfg!(target_os = "windows") {
-        assert!(gui.location.unwrap().contains("Qt6Gui.dll"));
         for def in ["QT_CORE_LIB", "QT_GUI_LIB", "WIN32", "WIN64"] {
             assert!(gui.compile_definitions.contains(&def.to_string()));
         }
-        for lib in ["Qt6Gui.dll", "Qt6Core.dll", "mpr", "userenv"] {
+        for lib in ["Qt6Gui.lib", "Qt6Core.lib", "mpr", "userenv"] {
             assert!(gui.link_libraries.iter().any(|l| l.contains(lib)))
         }
         assert_eq!(
@@ -227,11 +221,10 @@ fn test_find_qt_debug() {
         .expect("Failed to find Qt6::Core target");
     assert_eq!(core.name, "Qt6::Core");
     if cfg!(target_os = "windows") {
-        assert!(core.location.unwrap().contains("Qt6Cored.dll"));
         for def in ["QT_CORE_LIB", "WIN32", "WIN64"] {
             assert!(core.compile_definitions.contains(&def.to_string()));
         }
-        for lib in ["Qt6Cored.dll", "mpr", "userenv"] {
+        for lib in ["Qt6Cored.lib", "mpr", "userenv"] {
             assert!(core.link_libraries.iter().any(|l| l.contains(lib)))
         }
         assert_eq!(

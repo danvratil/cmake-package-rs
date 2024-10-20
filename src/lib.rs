@@ -168,8 +168,6 @@ impl CMakePackage {
 pub struct CMakeTarget {
     /// Name of the CMake target
     pub name: String,
-    /// Location of the target's binary (library or executable)
-    pub location: Option<String>,
     /// List of public compile definitions requirements for a library.
     ///
     /// Contains preprocessor definitions provided by the target and all its transitive dependencies
@@ -371,7 +369,6 @@ mod testing {
     fn test_link_to() {
         let target = CMakeTarget {
             name: "foo".into(),
-            location: None,
             compile_definitions: vec![],
             compile_options: vec![],
             include_directories: vec![],
