@@ -462,10 +462,6 @@ mod testing {
         let target = Target {
             name: "my_target".to_string(),
             imported_location: Some("/path/to/target.so".to_string()),
-            imported_location_release: None,
-            imported_location_debug: None,
-            imported_location_minsizerel: None,
-            imported_location_relwithdebinfo: None,
             interface_compile_definitions: Some(vec!["DEFINE1".to_string(), "DEFINE2".to_string()]),
             interface_compile_options: Some(vec!["-O2".to_string(), "-Wall".to_string()]),
             interface_include_directories: Some(vec!["/path/to/include".to_string()]),
@@ -477,10 +473,6 @@ mod testing {
                 PropertyValue::Target(Target {
                     name: "dependency".to_string(),
                     imported_location: Some("/path/to/dependency.so".to_string()),
-                    imported_location_release: None,
-                    imported_location_debug: None,
-                    imported_location_minsizerel: None,
-                    imported_location_relwithdebinfo: None,
                     interface_compile_definitions: Some(vec!["DEFINE3".to_string()]),
                     interface_compile_options: Some(vec!["-O3".to_string()]),
                     interface_include_directories: Some(vec![
@@ -491,8 +483,10 @@ mod testing {
                     interface_link_libraries: Some(vec![PropertyValue::String(
                         "dependency_library".to_string(),
                     )]),
+                    ..Default::default()
                 }),
             ]),
+            ..Default::default()
         };
 
         let cmake_target: CMakeTarget = target.into_cmake_target(CMakeBuildType::Release);
@@ -534,15 +528,7 @@ mod testing {
             name: "test_target".to_string(),
             imported_location: Some("/path/to/target.so".to_string()),
             imported_location_debug: Some("/path/to/target_debug.so".to_string()),
-            imported_location_minsizerel: None,
-            imported_location_relwithdebinfo: None,
-            imported_location_release: None,
-            interface_compile_definitions: None,
-            interface_compile_options: None,
-            interface_include_directories: None,
-            interface_link_directories: None,
-            interface_link_options: None,
-            interface_link_libraries: None,
+            ..Default::default()
         };
 
         let cmake_target = target.into_cmake_target(CMakeBuildType::Debug);
@@ -561,11 +547,11 @@ mod testing {
   [
     {
       "INTERFACE_INCLUDE_DIRECTORIES" : [ "/usr/include" ],
-      "LOCATION" : "/usr/lib/libcrypto.so",
+      "IMPORTED_LOCATION" : "/usr/lib/libcrypto.so",
       "NAME" : "OpenSSL::Crypto"
     }
   ],
-  "LOCATION" : "/usr/lib/libssl.so",
+  "IMPORTED_LOCATION" : "/usr/lib/libssl.so",
   "NAME" : "OpenSSL::SSL"
 }
 "#;
