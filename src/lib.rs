@@ -219,6 +219,16 @@ fn link_name(lib: &str) -> Option<&str> {
     regex.captures(lib)?.get(1).map(|f| f.as_str())
 }
 
+#[cfg(target_os = "linux")]
+fn link_dir(lib: &str) -> Option<&str> {
+    let regex = Regex::new(r"(.*)/lib[^/]+\.so.*").ok()?;
+    regex.captures(lib)?.get(1).map(|f| f.as_str())
+}
+
+#[cfg(target_os = "windows")]
+fn link_dir(_lib: &str) -> Option<&str> {
+    None
+}
 
 #[cfg(target_os = "windows")]
 fn link_name(lib: &str) -> Option<&str> {
@@ -251,6 +261,11 @@ impl CMakeTarget {
             match link_name(lib) {
                 Some(lib) => writeln!(io, "cargo:rustc-link-lib=dylib={}", lib).unwrap(),
                 None => writeln!(io, "cargo:rustc-link-arg={}", lib).unwrap(),
+            }
+
+            match link_dir(lib) {
+                Some(lib) => writeln!(io, "cargo:rustc-link-search=native={}", lib).unwrap(),
+                None => (),
             }
         });
     }
@@ -386,7 +401,9 @@ mod testing {
             vec![
                 "cargo:rustc-link-search=native=/usr/lib64",
                 "cargo:rustc-link-lib=dylib=bar",
-                "cargo:rustc-link-lib=dylib=foo"
+                "cargo:rustc-link-search=native=/usr/lib",
+                "cargo:rustc-link-lib=dylib=foo",
+                "cargo:rustc-link-search=native=/usr/lib64"
             ]
         );
     }
