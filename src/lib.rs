@@ -260,7 +260,15 @@ impl CMakeTarget {
         self.link_libraries.iter().for_each(|lib| {
             match link_name(lib) {
                 Some(lib) => writeln!(io, "cargo:rustc-link-lib=dylib={}", lib).unwrap(),
-                None => writeln!(io, "cargo:rustc-link-arg={}", lib).unwrap(),
+                None => {
+                    // if it starts with - assume it's a linker arg,
+                    // otherwise assume it's a library name
+                    if lib.starts_with("-") {
+                        writeln!(io, "cargo:rustc-link-arg={}", lib).unwrap()
+                    } else {
+                        writeln!(io, "cargo:rustc-link-lib=dylib={}", lib).unwrap()
+                    }
+                }
             }
 
             match link_dir(lib) {
