@@ -240,3 +240,59 @@ fn test_find_qt_debug() {
         // usually in a separate debug file.
     }
 }
+
+#[test]
+#[serial]
+#[cfg(target_os = "linux")]
+fn test_find_with_asan() {
+    let tmpdir = common::set_outdir();
+    let _profile = common::set_profile(common::Profile::Debug);
+    let _cmake_prefix = common::use_test_cmake_prefix();
+
+    let package = find_package("WithAsan")
+        .verbose()
+        .find()
+        .expect("Failed to find WithAsan");
+    assert_eq!(package.name, "WithAsan");
+    assert_eq!(package.version, Some("4.5.6".try_into().unwrap()));
+
+    let target = package
+        .target("WithAsan::WithAsan")
+        .expect("Failed to find WithAsan::WithAsan target");
+
+    assert_eq!(target.name, "WithAsan::WithAsan");
+    assert!(target
+        .link_libraries
+        .iter()
+        .any(|lib| lib.ends_with("libWithAsan.so")));
+    assert!(target
+        .link_libraries
+        .iter()
+        .any(|lib| lib.ends_with("libssl.so")));
+    assert!(target
+        .link_libraries
+        .iter()
+        .any(|lib| lib.ends_with("libcrypto.so")));
+    assert!(target.link_libraries.iter().any(|lib| *lib == "asan"));
+
+    let tmp_file = tmpdir.join("stdout.txt").display().to_string();
+    {
+        let _guard = stdio_override::StdoutOverride::override_file(&tmp_file)
+            .expect("Failed to override stdout");
+        target.link();
+    }
+
+    let output = std::fs::read_to_string(tmp_file).unwrap();
+    assert!(output
+        .lines()
+        .any(|line| line == "cargo:rustc-link-lib=dylib=WithAsan"));
+    assert!(output
+        .lines()
+        .any(|line| line == "cargo:rustc-link-lib=dylib=ssl"));
+    assert!(output
+        .lines()
+        .any(|line| line == "cargo:rustc-link-lib=dylib=crypto"));
+    assert!(output
+        .lines()
+        .any(|line| line == "cargo:rustc-link-lib=dylib=asan"));
+}

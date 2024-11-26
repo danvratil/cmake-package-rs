@@ -341,8 +341,14 @@ fn collect_from_targets_unique<'a>(
 
 fn implib_for_build_type(build_type: CMakeBuildType, target: &Target) -> Option<String> {
     match build_type {
-        CMakeBuildType::Debug => target.imported_implib_debug.clone().or(target.imported_implib.clone()),
-        CMakeBuildType::Release => target.imported_implib_release.clone().or(target.imported_implib.clone()),
+        CMakeBuildType::Debug => target
+            .imported_implib_debug
+            .clone()
+            .or(target.imported_implib.clone()),
+        CMakeBuildType::Release => target
+            .imported_implib_release
+            .clone()
+            .or(target.imported_implib.clone()),
         CMakeBuildType::RelWithDebInfo => target
             .imported_implib_relwithdebinfo
             .clone()
@@ -351,7 +357,8 @@ fn implib_for_build_type(build_type: CMakeBuildType, target: &Target) -> Option<
             .imported_implib_minsizerel
             .clone()
             .or(target.imported_implib.clone()),
-    }.or_else(|| location_for_build_type(build_type, target))
+    }
+    .or_else(|| location_for_build_type(build_type, target))
 }
 
 fn location_for_build_type(build_type: CMakeBuildType, target: &Target) -> Option<String> {
@@ -536,7 +543,10 @@ mod testing {
         };
 
         let cmake_target = target.into_cmake_target(CMakeBuildType::Debug);
-        assert_eq!(cmake_target.link_libraries, vec!["/path/to/libtarget_debug.so"]);
+        assert_eq!(
+            cmake_target.link_libraries,
+            vec!["/path/to/libtarget_debug.so"]
+        );
     }
 
     #[test]
