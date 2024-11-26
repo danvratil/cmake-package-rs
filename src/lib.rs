@@ -82,6 +82,8 @@
 use std::io::Write;
 
 #[cfg(target_os = "linux")]
+use once_cell::sync::Lazy;
+#[cfg(target_os = "linux")]
 use regex::Regex;
 use tempfile::TempDir;
 
@@ -212,27 +214,30 @@ pub struct CMakeTarget {
 }
 
 /// Turns /usr/lib/libfoo.so.5 into foo, so that -lfoo rather than -l/usr/lib/libfoo.so.5
-/// is passed to the linker.
+/// is passed to the linker. Leaves "foo" untouched.
 #[cfg(target_os = "linux")]
-fn link_name(lib: &str) -> Option<&str> {
-    let regex = Regex::new(r"lib([^/]+)\.so.*").ok()?;
-    regex.captures(lib)?.get(1).map(|f| f.as_str())
+fn link_name(lib: &str) -> &str {
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"lib([^/]+)\.so.*").unwrap());
+    match RE.captures(lib) {
+        Some(captures) => captures.get(1).map(|f| f.as_str()).unwrap_or(lib),
+        None => lib,
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn link_name(lib: &str) -> &str {
+    lib
 }
 
 #[cfg(target_os = "linux")]
 fn link_dir(lib: &str) -> Option<&str> {
-    let regex = Regex::new(r"(.*)/lib[^/]+\.so.*").ok()?;
-    regex.captures(lib)?.get(1).map(|f| f.as_str())
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(.*)/lib[^/]+\.so.*").unwrap());
+    RE.captures(lib)?.get(1).map(|f| f.as_str())
 }
 
 #[cfg(target_os = "windows")]
 fn link_dir(_lib: &str) -> Option<&str> {
     None
-}
-
-#[cfg(target_os = "windows")]
-fn link_name(lib: &str) -> Option<&str> {
-    Some(lib)
 }
 
 impl CMakeTarget {
@@ -258,22 +263,14 @@ impl CMakeTarget {
             writeln!(io, "cargo:rustc-link-arg={}", opt).unwrap();
         });
         self.link_libraries.iter().for_each(|lib| {
-            match link_name(lib) {
-                Some(lib) => writeln!(io, "cargo:rustc-link-lib=dylib={}", lib).unwrap(),
-                None => {
-                    // if it starts with - assume it's a linker arg,
-                    // otherwise assume it's a library name
-                    if lib.starts_with("-") {
-                        writeln!(io, "cargo:rustc-link-arg={}", lib).unwrap()
-                    } else {
-                        writeln!(io, "cargo:rustc-link-lib=dylib={}", lib).unwrap()
-                    }
-                }
+            if lib.starts_with("-") {
+                writeln!(io, "cargo:rustc-link-arg={}", lib).unwrap();
+            } else {
+                writeln!(io, "cargo:rustc-link-lib=dylib={}", link_name(lib)).unwrap();
             }
 
-            match link_dir(lib) {
-                Some(lib) => writeln!(io, "cargo:rustc-link-search=native={}", lib).unwrap(),
-                None => (),
+            if let Some(lib) = link_dir(lib) {
+                writeln!(io, "cargo:rustc-link-search=native={}", lib).unwrap();
             }
         });
     }
