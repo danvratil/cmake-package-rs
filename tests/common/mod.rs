@@ -22,10 +22,11 @@ pub fn use_cmake(name: &str) -> ScopeGuard<(), impl FnOnce(())> {
     })
 }
 
-pub fn set_outdir() -> ScopeGuard<(), impl FnOnce(())> {
-    std::env::set_var("OUT_DIR", std::env::temp_dir());
+pub fn set_outdir() -> ScopeGuard<PathBuf, impl FnOnce(PathBuf)> {
+    let temp_dir = std::env::temp_dir();
+    std::env::set_var("OUT_DIR", temp_dir.clone());
 
-    guard((), |_| {
+    guard(temp_dir, |_| {
         std::env::remove_var("OUT_DIR");
     })
 }
@@ -46,5 +47,19 @@ pub fn set_profile(profile: Profile) -> ScopeGuard<(), impl FnOnce(())> {
 
     guard((), |_| {
         std::env::remove_var("PROFILE");
+    })
+}
+
+#[allow(dead_code)] // unused on Windows
+pub fn use_test_cmake_prefix() -> ScopeGuard<(), impl FnOnce(())> {
+    let old_val = std::env::var("CMAKE_PREFIX_PATH");
+    std::env::set_var(
+        "CMAKE_PREFIX_PATH",
+        PathBuf::from(std::env!("CARGO_MANIFEST_DIR")).join("tests/data"),
+    );
+
+    guard((), |_| match old_val {
+        Ok(val) => std::env::set_var("CMAKE_PREFIX_PATH", val),
+        Err(_) => std::env::remove_var("CMAKE_PREFIX_PATH"),
     })
 }

@@ -34,11 +34,13 @@ name = "cmake-package"
 version = "0.1.2"
 dependencies = [
  "itertools",
+ "once_cell",
  "regex",
  "scopeguard",
  "serde",
  "serde_json",
  "serial_test",
+ "stdio-override",
  "tempfile",
  "which",
 ]
@@ -408,6 +410,15 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "stdio-override"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9c22512d2e95aa9a717da4c955c0085078a1f28b988e0736fc7066fdcc030c8"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "syn"
