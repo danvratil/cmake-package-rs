@@ -231,8 +231,8 @@ fn link_name(lib: &str) -> &str {
 
 #[cfg(target_os = "linux")]
 fn link_dir(lib: &str) -> Option<&str> {
-    let regex = Regex::new(r"(.*)/lib[^/]+\.so.*").ok()?;
-    regex.captures(lib)?.get(1).map(|f| f.as_str())
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(.*)/lib[^/]+\.so.*").unwrap());
+    RE.captures(lib)?.get(1).map(|f| f.as_str())
 }
 
 #[cfg(target_os = "windows")]
