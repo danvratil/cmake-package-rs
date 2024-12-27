@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 (2024-12-27)
+
+* Set CLICOLOR to 0 when reading CMake version (#36) 
+* Dependency updates
+
 ## 0.1.3 (2024-11-26)
 
 * Fix library names being misinterpreted as linker args (#27)
