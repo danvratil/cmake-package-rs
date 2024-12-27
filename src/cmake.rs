@@ -65,6 +65,7 @@ pub fn find_cmake() -> Result<CMakeProgram, Error> {
     let path = which("cmake").or(Err(Error::CMakeNotFound))?;
 
     let output = Command::new(&path)
+        .env("CLICOLOR", "0")
         .arg("-P")
         .arg(script_path("cmake_version.cmake"))
         .output()
