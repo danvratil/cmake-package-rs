@@ -10,3 +10,9 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: all
+    groups:
+      rust-dependencies:
+        update-types:
+          - "minor"
+          - "patch"
+
