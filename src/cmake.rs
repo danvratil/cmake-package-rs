@@ -416,6 +416,7 @@ impl Target {
                 .dedup()
                 .collect(),
             name: self.name,
+            location: self.location,
         }
     }
 }
