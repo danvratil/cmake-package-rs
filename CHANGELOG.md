@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 (2025-01-15)
+
+* Expose the LOCATION property of targets in public API (#48)
+* Actually return None when failing to find target (#47)
+* Updated dependencies
+
 ## 0.1.4 (2024-12-27)
 
 * Set CLICOLOR to 0 when reading CMake version (#36) 
