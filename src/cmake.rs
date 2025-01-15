@@ -460,6 +460,9 @@ pub(crate) fn find_target(
             eprintln!("Failed to parse target JSON: {:?}", e);
         })
         .ok()?;
+    if target.name.is_empty() {
+        return None;
+    }
     Some(target.into_cmake_target(build_type))
 }
 
