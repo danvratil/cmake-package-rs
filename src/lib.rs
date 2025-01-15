@@ -211,6 +211,10 @@ pub struct CMakeTarget {
     ///
     /// [cmake_interface_link_options]: https://cmake.org/cmake/help/latest/prop_tgt/INTERFACE_LINK_OPTIONS.html
     pub link_options: Vec<String>,
+    /// The location of the target on disk.
+    ///
+    /// [cmake_interface_location]: https://cmake.org/cmake/help/latest/prop_tgt/LOCATION.html
+    pub location: Option<String>,
 }
 
 /// Turns /usr/lib/libfoo.so.5 into foo, so that -lfoo rather than -l/usr/lib/libfoo.so.5
@@ -396,6 +400,7 @@ mod testing {
             link_directories: vec!["/usr/lib64".into()],
             link_libraries: vec!["/usr/lib/libbar.so".into(), "/usr/lib64/libfoo.so.5".into()],
             link_options: vec![],
+            location: None,
         };
 
         let mut buf = Vec::new();
