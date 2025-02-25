@@ -30,4 +30,4 @@ scopeguard = "1.2"
 serial_test = "3.2"
 
 [target.'cfg(unix)'.dev-dependencies]
-stdio-override = "0.1"
+stdio-override = "0.2"

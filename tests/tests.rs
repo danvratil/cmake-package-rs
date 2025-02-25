@@ -277,7 +277,7 @@ fn test_find_with_asan() {
 
     let tmp_file = tmpdir.join("stdout.txt").display().to_string();
     {
-        let _guard = stdio_override::StdoutOverride::override_file(&tmp_file)
+        let _guard = stdio_override::StdoutOverride::from_file(&tmp_file)
             .expect("Failed to override stdout");
         target.link();
     }
