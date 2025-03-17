@@ -17,7 +17,7 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-          #- macos-latest TODO
+          - macos-latest
       fail-fast: false
     env:
       CARGO_TERM_COLOR: always

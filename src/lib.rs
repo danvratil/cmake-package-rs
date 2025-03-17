@@ -59,7 +59,7 @@
 //!
 //! # Known Limitations
 //!
-//! The crate currently supporst primarily linking against shared libraries. Linking against
+//! The crate currently supports primarily linking against shared libraries. Linking against
 //! static libraries is not tested and may not work as expected. The crate currently does not
 //! support linking against MacOS frameworks.
 //!
@@ -81,9 +81,9 @@
 
 use std::io::Write;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use once_cell::sync::Lazy;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use regex::Regex;
 use tempfile::TempDir;
 
@@ -219,7 +219,7 @@ pub struct CMakeTarget {
 
 /// Turns /usr/lib/libfoo.so.5 into foo, so that -lfoo rather than -l/usr/lib/libfoo.so.5
 /// is passed to the linker. Leaves "foo" untouched.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn link_name(lib: &str) -> &str {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"lib([^/]+)\.so.*").unwrap());
     match RE.captures(lib) {
@@ -233,7 +233,7 @@ fn link_name(lib: &str) -> &str {
     lib
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn link_dir(lib: &str) -> Option<&str> {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(.*)/lib[^/]+\.so.*").unwrap());
     RE.captures(lib)?.get(1).map(|f| f.as_str())
@@ -390,7 +390,7 @@ mod testing {
     }
 
     #[test]
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     fn test_link_to() {
         let target = CMakeTarget {
             name: "foo".into(),
