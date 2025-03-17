@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 (2025-03-17)
+
+* Fix build on MacOS (#61), add MacOS CI
+* Update dependencies
+
 ## 0.1.5 (2025-01-15)
 
 * Expose the LOCATION property of targets in public API (#48)
