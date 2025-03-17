@@ -59,7 +59,7 @@
 //!
 //! # Known Limitations
 //!
-//! The crate currently supporst primarily linking against shared libraries. Linking against
+//! The crate currently supports primarily linking against shared libraries. Linking against
 //! static libraries is not tested and may not work as expected. The crate currently does not
 //! support linking against MacOS frameworks.
 //!
