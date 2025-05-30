@@ -19,8 +19,8 @@ pub enum VersionError {
 
 impl Version {
     pub fn parse(version: &str) -> Result<Version, VersionError> {
-        let parts: Vec<&str> = version.split('.').collect();
-        if parts.is_empty() || parts.len() > 3 {
+        let parts: Vec<&str> = version.split(&['.', '-']).collect();
+        if parts.is_empty() {
             return Err(VersionError::InvalidVersion);
         }
 
@@ -130,12 +130,20 @@ mod testing {
                 patch: 0
             }
         );
+        assert_eq!(
+            Version::parse("4.0.20250530-gab5866c").unwrap(),
+            Version {
+                major: 4,
+                minor: 0,
+                patch: 20250530
+            }
+        )
     }
 
     #[test]
     fn test_version_parse_invalid() {
         assert!(Version::parse("").is_err());
-        assert!(Version::parse("1.2.3.4").is_err());
+        assert!(Version::parse("1.2.3:4").is_err());
         assert!(Version::parse("a.b.c").is_err());
     }
 
