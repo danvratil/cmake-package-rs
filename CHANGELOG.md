@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.7 (2025-05-30)
+
+* Fix parsing of cmake git versions (#70)
+* Update dependencies
+
 ## 0.1.6 (2025-03-17)
 
 * Fix build on MacOS (#61), add MacOS CI
