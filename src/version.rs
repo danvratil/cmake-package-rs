@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-use std::cmp::Ordering;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Version {
     pub major: u32,
     pub minor: u32,
@@ -65,38 +63,6 @@ impl From<Version> for String {
 impl std::fmt::Display for Version {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
-    }
-}
-
-impl PartialOrd for Version {
-    fn ge(&self, other: &Self) -> bool {
-        self.major >= other.major && self.minor >= other.minor && self.patch >= other.patch
-    }
-
-    fn gt(&self, other: &Self) -> bool {
-        (self.major > other.major)
-            || (self.major == other.major && self.minor > other.minor)
-            || (self.major == other.major && self.minor == other.minor && self.patch > other.patch)
-    }
-
-    fn le(&self, other: &Self) -> bool {
-        self.major <= other.major && self.minor <= other.minor && self.patch <= other.patch
-    }
-
-    fn lt(&self, other: &Self) -> bool {
-        (self.major < other.major)
-            || (self.major == other.major && self.minor < other.minor)
-            || (self.major == other.major && self.minor == other.minor && self.patch < other.patch)
-    }
-
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self == other {
-            Some(Ordering::Equal)
-        } else if self < other {
-            Some(Ordering::Less)
-        } else {
-            Some(Ordering::Greater)
-        }
     }
 }
 
