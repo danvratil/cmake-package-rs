@@ -142,12 +142,36 @@ mod testing {
             patch: 1,
         };
 
+        let v4 = Version {
+            major: 2,
+            minor: 0,
+            patch: 0,
+        };
+
         assert!(v1 < v2);
+        assert!(v1 <= v2);
         assert!(v2 < v3);
+        assert!(v2 <= v3);
         assert!(v1 < v3);
+        assert!(v1 <= v3);
         assert!(v3 > v2);
+        assert!(v3 >= v2);
         assert!(v2 > v1);
+        assert!(v2 >= v1);
         assert!(v3 > v1);
+        assert!(v3 >= v1);
+        assert!(v1 < v4);
+        assert!(v1 <= v4);
+        assert!(v4 > v1);
+        assert!(v4 >= v1);
+        assert!(v2 < v4);
+        assert!(v2 <= v4);
+        assert!(v4 > v2);
+        assert!(v4 >= v2);
+        assert!(v3 < v4);
+        assert!(v3 <= v4);
+        assert!(v4 > v3);
+        assert!(v4 >= v3);
     }
 
     #[test]
