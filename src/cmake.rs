@@ -76,7 +76,6 @@ pub fn find_cmake() -> Result<CMakeProgram, Error> {
         .map_err(|_| Error::Internal)?
         .success()
     {
-
         let reader = std::fs::File::open(output_file).map_err(Error::IO)?;
         let version: Version = serde_json::from_reader(reader).or(Err(Error::Internal))?;
         Ok(CMakeProgram { path, version })
