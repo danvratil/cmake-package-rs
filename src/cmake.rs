@@ -20,8 +20,6 @@ pub const CMAKE_MIN_VERSION: &str = "3.19";
 pub struct CMakeProgram {
     /// Path to the `cmake` executable to be used.
     pub path: PathBuf,
-    /// Version of the `cmake` detected. Must be at least [`CMAKE_MIN_VERSION`].
-    pub version: Version,
 }
 
 fn script_path(script: &str) -> PathBuf {
@@ -64,28 +62,18 @@ struct PackageResult {
 pub fn find_cmake() -> Result<CMakeProgram, Error> {
     let path = which("cmake").or(Err(Error::CMakeNotFound))?;
 
-    let output = Command::new(&path)
-        .env("CLICOLOR", "0")
+    if Command::new(&path)
+        .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
         .arg("-P")
         .arg(script_path("cmake_version.cmake"))
-        .output()
-        .or(Err(Error::Internal))?;
-
-    let version = String::from_utf8_lossy(&output.stderr)
-        .trim()
-        .to_string()
-        .try_into()
-        .or(Err(Error::UnsupportedCMakeVersion))?;
-
-    if version
-        < CMAKE_MIN_VERSION
-            .try_into()
-            .map_err(|_| Error::UnsupportedCMakeVersion)?
+        .status()
+        .map_err(|_| Error::Internal)?
+        .success()
     {
-        return Err(Error::UnsupportedCMakeVersion);
+        Ok(CMakeProgram { path })
+    } else {
+        Err(Error::UnsupportedCMakeVersion)
     }
-
-    Ok(CMakeProgram { path, version })
 }
 
 fn get_temporary_working_directory() -> Result<TempDir, Error> {
