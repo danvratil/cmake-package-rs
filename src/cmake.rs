@@ -20,6 +20,8 @@ pub const CMAKE_MIN_VERSION: &str = "3.19";
 pub struct CMakeProgram {
     /// Path to the `cmake` executable to be used.
     pub path: PathBuf,
+    /// Version of the `cmake` detected. Must be at least [`CMAKE_MIN_VERSION`].
+    pub version: Version,
 }
 
 fn script_path(script: &str) -> PathBuf {
@@ -62,15 +64,22 @@ struct PackageResult {
 pub fn find_cmake() -> Result<CMakeProgram, Error> {
     let path = which("cmake").or(Err(Error::CMakeNotFound))?;
 
+    let working_directory = get_temporary_working_directory()?;
+    let output_file = working_directory.path().join("version_info.json");
+
     if Command::new(&path)
         .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
+        .arg(format!("-DOUTPUT_FILE={}", output_file.display()))
         .arg("-P")
         .arg(script_path("cmake_version.cmake"))
         .status()
         .map_err(|_| Error::Internal)?
         .success()
     {
-        Ok(CMakeProgram { path })
+
+        let reader = std::fs::File::open(output_file).map_err(Error::IO)?;
+        let version: Version = serde_json::from_reader(reader).or(Err(Error::Internal))?;
+        Ok(CMakeProgram { path, version })
     } else {
         Err(Error::UnsupportedCMakeVersion)
     }
