@@ -1,4 +1,10 @@
 #!/bin/bash
 
-# Write an old version to stderr
-echo "3.12.4" 1>&2
+mkdir -p "$(dirname ${OUTPUT_FILE})"
+cat >"${OUTPUT_FILE}" <<EOL
+{
+  "MAJOR" : 3,
+  "MINOR" : 12,
+  "PATCH" : 4
+}
+EOL
