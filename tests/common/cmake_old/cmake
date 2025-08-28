@@ -1,10 +1,8 @@
 #!/bin/bash
 
-mkdir -p "$(dirname ${OUTPUT_FILE})"
-cat >"${OUTPUT_FILE}" <<EOL
-{
-  "MAJOR" : 3,
-  "MINOR" : 12,
-  "PATCH" : 4
-}
-EOL
+echo "CMake Error at cmake_version.cmake:5 (cmake_minimum_required):"
+echo "  CMake 3.19 or higher is required.  You are running version 3.12.4"
+echo ""
+echo ""
+
+exit 1
