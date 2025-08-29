@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
-# Print the current version of CMake to stderr - this is easier than parsing
-# the output for `cmake --version`
-message("${CMAKE_VERSION}")
+cmake_minimum_required(VERSION ${CMAKE_MIN_VERSION})
+if (NOT DEFINED OUTPUT_FILE)
+    message(FATAL_ERROR "OUTPUT_FILE is not set")
+endif()
+set(version_json "{}")
+set(version_variables "MAJOR" "MINOR" "PATCH")
+foreach(x IN LISTS version_variables)
+  string(JSON version_json SET ${version_json} "${x}" "${CMAKE_${x}_VERSION}")
+endforeach()
+file(WRITE ${OUTPUT_FILE} ${version_json})

@@ -64,28 +64,24 @@ struct PackageResult {
 pub fn find_cmake() -> Result<CMakeProgram, Error> {
     let path = which("cmake").or(Err(Error::CMakeNotFound))?;
 
-    let output = Command::new(&path)
-        .env("CLICOLOR", "0")
+    let working_directory = get_temporary_working_directory()?;
+    let output_file = working_directory.path().join("version_info.json");
+
+    if Command::new(&path)
+        .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
+        .arg(format!("-DOUTPUT_FILE={}", output_file.display()))
         .arg("-P")
         .arg(script_path("cmake_version.cmake"))
-        .output()
-        .or(Err(Error::Internal))?;
-
-    let version = String::from_utf8_lossy(&output.stderr)
-        .trim()
-        .to_string()
-        .try_into()
-        .or(Err(Error::UnsupportedCMakeVersion))?;
-
-    if version
-        < CMAKE_MIN_VERSION
-            .try_into()
-            .map_err(|_| Error::UnsupportedCMakeVersion)?
+        .status()
+        .map_err(|_| Error::Internal)?
+        .success()
     {
-        return Err(Error::UnsupportedCMakeVersion);
+        let reader = std::fs::File::open(output_file).map_err(Error::IO)?;
+        let version: Version = serde_json::from_reader(reader).or(Err(Error::Internal))?;
+        Ok(CMakeProgram { path, version })
+    } else {
+        Err(Error::UnsupportedCMakeVersion)
     }
-
-    Ok(CMakeProgram { path, version })
 }
 
 fn get_temporary_working_directory() -> Result<TempDir, Error> {
