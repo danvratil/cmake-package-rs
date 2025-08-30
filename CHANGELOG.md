@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 (2025-08-30)
+* Avoid cmake version parsing in Rust (#83)
+* Update dependencies
+
 ## 0.1.8 (2025-07-17)
 * Fix how versions are compared, required for CMake 4.x.x (#76)
 * Update dependencies
