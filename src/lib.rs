@@ -221,7 +221,7 @@ pub struct CMakeTarget {
 /// is passed to the linker. Leaves "foo" untouched.
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn link_name(lib: &str) -> &str {
-    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"lib([^/]+)\.so.*").unwrap());
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"lib([^/]+)\.(?:so|dylib|a).*").unwrap());
     match RE.captures(lib) {
         Some(captures) => captures.get(1).map(|f| f.as_str()).unwrap_or(lib),
         None => lib,
