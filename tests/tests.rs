@@ -74,7 +74,8 @@ fn test_find_openssl_release() {
         .find()
         .expect("Failed to find OpenSSL");
     assert_eq!(package.name, "OpenSSL");
-    assert!(package.version.is_none()); // OpenSSL version detection simply doesn't work for some reason
+    // Seems to work on MacOS CI, but not on Linux CI, so let's keep the check disabled
+    //assert!(package.version.is_none()); // OpenSSL version detection simply doesn't work for some reason
 
     let target = package
         .target("OpenSSL::SSL")
