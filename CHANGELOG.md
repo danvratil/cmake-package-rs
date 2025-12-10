@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.10 (2025-12-10)
+* Support absolute library path on Darwin (#95)
+* Update dependencies
+
 ## 0.1.9 (2025-08-30)
 * Avoid cmake version parsing in Rust (#83)
 * Update dependencies
