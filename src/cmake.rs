@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+use std::{error, fmt};
 use crate::version::{Version, VersionError};
 use crate::{CMakePackage, CMakeTarget};
 
@@ -46,6 +47,14 @@ pub enum Error {
     /// The requested package was not found by CMake.
     PackageNotFound,
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "CMake Error: {:?}", self)
+    }
+}
+
+impl error::Error for Error {}
 
 #[derive(Clone, Debug, Deserialize)]
 struct PackageResult {
@@ -164,6 +173,7 @@ pub(crate) fn find_package(
     version: Option<Version>,
     components: Option<Vec<String>>,
     verbose: bool,
+    prefix_paths: Option<Vec<PathBuf>>
 ) -> Result<CMakePackage, Error> {
     // Find cmake or panic
     let cmake = find_cmake()?;
@@ -183,7 +193,13 @@ pub(crate) fn find_package(
         .arg(format!("-DCMAKE_BUILD_TYPE={:?}", build_type()))
         .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
         .arg(format!("-DPACKAGE={}", name))
-        .arg(format!("-DOUTPUT_FILE={}", output_file.display()));
+        .arg(format!("-DOUTPUT_FILE={}", output_file.display()))
+        .arg(format!("-DCMAKE_PREFIX_PATH={}", prefix_paths
+            .unwrap_or_default()
+            .into_iter()
+            .map(|path| path.display().to_string())
+            .join(";")))
+        .arg(format!("-DCMAKE_FIND_DEBUG_MODE={}", if verbose { "TRUE" } else { "FALSE" }));
     if let Some(version) = version {
         command.arg(format!("-DVERSION={}", version));
     }

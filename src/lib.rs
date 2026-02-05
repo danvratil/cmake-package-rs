@@ -80,6 +80,7 @@
 //! [cmake_generator_expr]: https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html
 
 use std::io::Write;
+use std::path::PathBuf;
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use once_cell::sync::Lazy;
@@ -290,6 +291,7 @@ pub struct FindPackageBuilder {
     version: Option<Version>,
     components: Option<Vec<String>>,
     verbose: bool,
+    prefix_paths: Option<Vec<PathBuf>>
 }
 
 impl FindPackageBuilder {
@@ -299,6 +301,7 @@ impl FindPackageBuilder {
             version: None,
             components: None,
             verbose: false,
+            prefix_paths: None
         }
     }
 
@@ -340,10 +343,20 @@ impl FindPackageBuilder {
         }
     }
 
+    // Specify prefix paths.
+    // This sets directories to be searched for the package.
+    // [cmake_prefix_path]: https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html
+    pub fn prefix_paths(self, prefix_paths: Vec<PathBuf>) -> Self {
+        Self {
+            prefix_paths: Some(prefix_paths),
+            ..self
+        }
+    }
+
     /// Tries to find the CMake package on the system.
     /// Returns a [`CMakePackage`] instance if the package is found, otherwise an error.
     pub fn find(self) -> Result<CMakePackage, cmake::Error> {
-        cmake::find_package(self.name, self.version, self.components, self.verbose)
+        cmake::find_package(self.name, self.version, self.components, self.verbose, self.prefix_paths)
     }
 }
 
