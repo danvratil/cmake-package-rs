@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.11 (2026-05-02)
+* Add support for specifying CMAKE_PREFIX_PATH (#105)
+* Update dependencies
+
 ## 0.1.10 (2025-12-10)
 * Support absolute library path on Darwin (#95)
 * Update dependencies
