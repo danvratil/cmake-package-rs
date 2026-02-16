@@ -1,6 +1,6 @@
 [package]
 name = "cmake-package"
-version = "0.1.11"
+version = "0.1.12"
 authors = ["Daniel Vrátil <dvratil@kde.org>"]
 license = "MIT"
 repository = "https://github.com/danvratil/cmake-package-rs"

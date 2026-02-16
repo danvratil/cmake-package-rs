@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.11 (2026-05-02)
+## 0.1.12 (2026-02-16)
+* Add support for querying arbitrary target properties (#110)
+* Update dependencies
+
+## 0.1.11 (2026-02-05)
 * Add support for specifying CMAKE_PREFIX_PATH (#105)
 * Update dependencies
 
