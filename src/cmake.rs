@@ -479,6 +479,63 @@ pub(crate) fn find_target(
     Some(target.into_cmake_target(build_type))
 }
 
+#[derive(Debug, Deserialize)]
+struct TargetProperty {
+    value: Option<PropertyValue>,
+}
+
+pub(crate) fn target_property(
+    package: &CMakePackage,
+    target: &CMakeTarget,
+    property: impl Into<String>,
+) -> Option<String> {
+    let property: String = property.into();
+
+    // Run the CMake script
+    let output_file = package.working_directory.path().join(format!(
+        "target_property_{}_{}.json",
+        target.name.to_lowercase().replace(":", "_"),
+        property.to_lowercase(),
+    ));
+    let build_type = build_type();
+    let mut command = Command::new(&package.cmake.path);
+    command
+        .stdout(stdio(package.verbose))
+        .stderr(stdio(package.verbose))
+        .current_dir(package.working_directory.path())
+        .arg(".")
+        .arg(format!("-DCMAKE_BUILD_TYPE={:?}", build_type))
+        .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
+        .arg(format!("-DPACKAGE={}", package.name))
+        .arg(format!("-DTARGET={}", target.name))
+        .arg(format!("-DPROPERTY={}", property))
+        .arg(format!("-DOUTPUT_FILE={}", output_file.display()));
+    if let Some(version) = package.version {
+        command.arg(format!("-DVERSION={}", version));
+    }
+    if let Some(components) = &package.components {
+        command.arg(format!("-DCOMPONENTS={}", components.join(";")));
+    }
+    command.output().ok()?;
+
+    // Read from the generated JSON file
+    let reader = std::fs::File::open(&output_file).ok()?;
+    let property_result: TargetProperty = serde_json::from_reader(reader)
+        .map_err(|e| {
+            eprintln!("Failed to parse target property JSON: {:?}", e);
+        })
+        .ok()?;
+
+    match property_result.value {
+        Some(PropertyValue::String(value)) => Some(value),
+        Some(PropertyValue::Target(_)) => {
+            eprintln!("Returning PropertyValue::Target from target_property not supported");
+            None
+        }
+        None => None,
+    }
+}
+
 #[cfg(test)]
 mod testing {
     use scopeguard::{guard, ScopeGuard};

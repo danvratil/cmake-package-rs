@@ -109,6 +109,14 @@ fn test_find_openssl_release() {
             .iter()
             .any(|lib| lib.contains("libssl64MD.lib")));
     }
+
+    let name = package
+        .target_property(&target, "NAME")
+        .expect("Failed to get target property");
+    assert_eq!(name, "OpenSSL::SSL");
+
+    let other = package.target_property(&target, "NONEXISTENT_PROPERTY");
+    assert_eq!(other, None);
 }
 
 #[test]
@@ -299,3 +307,4 @@ fn test_find_with_asan() {
         .lines()
         .any(|line| line == "cargo:rustc-link-lib=dylib=asan"));
 }
+

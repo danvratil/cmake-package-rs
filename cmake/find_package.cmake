@@ -278,12 +278,57 @@ function (find_package_target)
         message(STATUS "Target details written to ${ARG_OUTPUT_FILE}")
     else()
         # We found the package before, how come we did not find it this time?!
-        message(FATAL_ERROR "Package ${FP_PACKAGE} not found")
+        message(FATAL_ERROR "Package ${ARG_PACKAGE} not found")
     endif()
 endfunction()
 
+###################################################################################
+# Invokes find_package(), locates the specified target and returns the value of
+# the specified property of the target.
+#
+# Parameters:
+#   PACKAGE: The package name to find (required)
+#   TARGET: The target to resolve (required)
+#   PROPERTY: The property to read from the target (required)
+#   OUTPUT_FILE: The file to write the JSON output to (required)
+#   COMPONENTS: The components to find (optional)
+#   VERSION: The minimum version of the package to find (optional)
+###################################################################################
 
+function (find_target_property)
+    cmake_parse_arguments(ARG "" "PACKAGE;VERSION;TARGET;PROPERTY;OUTPUT_FILE" "COMPONENTS" ${ARGN})
+    if (NOT ARG_PACKAGE)
+        message(FATAL_ERROR "PACKAGE argument is not set")
+    endif()
+    if (NOT ARG_TARGET)
+        message(FATAL_ERROR "TARGET argument is not set")
+    endif()
+    if (NOT ARG_PROPERTY)
+        message(FATAL_ERROR "PROPERTY argument is not set")
+    endif()
+    if (NOT ARG_OUTPUT_FILE)
+        message(FATAL_ERROR "OUTPUT_FILE argument is not set")
+    endif()
 
+    # It's safe to require the version here, we already found the package before and
+    # established version is recent enough.
+    find_package(${ARG_PACKAGE} ${ARG_VERSION} COMPONENTS ${ARG_COMPONENTS})
+    if (${ARG_PACKAGE}_FOUND)
+        get_target_property(prop_value ${ARG_TARGET} ${ARG_PROPERTY})
+        set(json "{}")
+        if (NOT prop_value STREQUAL "prop_value-NOTFOUND")
+            string(JSON json SET ${json} "value" "\"${prop_value}\"")
+            message(STATUS "Target property ${ARG_PROPERTY} value written to ${ARG_OUTPUT_FILE}")
+        else()
+            message(STATUS "Target property ${ARG_PROPERTY} not found")
+        endif()
+
+        file(WRITE ${ARG_OUTPUT_FILE} ${json})
+    else()
+        # We found the package before, how come we did not find it this time?!
+        message(FATAL_ERROR "Package ${ARG_PACKAGE} not found")
+    endif()
+endfunction()
 
 
 if (NOT DEFINED PACKAGE)
@@ -296,19 +341,28 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
-if (NOT DEFINED TARGET)
-    find_package_wrapper(
+if (DEFINED TARGET AND DEFINED PROPERTY)
+    find_target_property(
         PACKAGE ${PACKAGE}
         COMPONENTS "${COMPONENTS}"
         VERSION ${VERSION}
+        TARGET ${TARGET}
+        PROPERTY ${PROPERTY}
         OUTPUT_FILE ${OUTPUT_FILE}
     )
-else()
+elseif (DEFINED TARGET)
     find_package_target(
         PACKAGE ${PACKAGE}
         COMPONENTS "${COMPONENTS}"
         VERSION ${VERSION}
         TARGET ${TARGET}
+        OUTPUT_FILE ${OUTPUT_FILE}
+    )
+else()
+    find_package_wrapper(
+        PACKAGE ${PACKAGE}
+        COMPONENTS "${COMPONENTS}"
+        VERSION ${VERSION}
         OUTPUT_FILE ${OUTPUT_FILE}
     )
 endif()
