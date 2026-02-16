@@ -145,6 +145,21 @@ impl CMakePackage {
     pub fn target(&self, target: impl Into<String>) -> Option<CMakeTarget> {
         cmake::find_target(self, target)
     }
+
+    /// Queries the CMake target for the value of a specific property.
+    ///
+    /// Returns `None` if the property is not defined on the target.
+    ///
+    /// This is equivalent to calling [`get_target_property()`][cmake_get_target_property] in CMake.
+    ///
+    /// [cmake_get_target_property]: https://cmake.org/cmake/help/latest/command/get_target_property.html
+    pub fn target_property(
+        &self,
+        target: &CMakeTarget,
+        property: impl Into<String>,
+    ) -> Option<String> {
+        cmake::target_property(self, target, property)
+    }
 }
 
 /// Describes a CMake target found in a CMake package.
