@@ -27,7 +27,7 @@ which = "8"
 
 [dev-dependencies]
 scopeguard = "1.2"
-serial_test = "3.3"
+serial_test = "3.4"
 
 [target.'cfg(unix)'.dev-dependencies]
 stdio-override = "0.2"
