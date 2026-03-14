@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.13 (2026-03-14)
+* Add support for NAMES in find_package (#117)
+* Update dependencies
+
 ## 0.1.12 (2026-02-16)
 * Add support for querying arbitrary target properties (#110)
 * Update dependencies
