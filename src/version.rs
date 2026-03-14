@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, serde::Deserialize)]
-#[serde(rename_all="UPPERCASE")]
+#[serde(rename_all = "UPPERCASE")]
 pub struct Version {
     pub major: u32,
     pub minor: u32,

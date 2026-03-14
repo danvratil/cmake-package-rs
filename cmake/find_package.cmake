@@ -80,9 +80,10 @@ project(cmake-package)
 #   OUTPUT_FILE: The file to write the JSON output to (required)
 #   VERSION: The minimum version of the package to find (optional)
 #   COMPONENTS: The components to find (optional)
+#   NAMES: Alternative package names to search for (optional)
 ###################################################################################
 function(find_package_wrapper)
-    cmake_parse_arguments(FP "" "PACKAGE;VERSION;OUTPUT_FILE" "COMPONENTS" ${ARGN})
+    cmake_parse_arguments(FP "" "PACKAGE;VERSION;OUTPUT_FILE" "COMPONENTS;NAMES" ${ARGN})
     if (NOT FP_PACKAGE)
         message(FATAL_ERROR "PACKAGE is not set")
     endif()
@@ -90,10 +91,19 @@ function(find_package_wrapper)
         message(FATAL_ERROR "OUTPUT_FILE is not set")
     endif()
 
+    set(_extra_args)
+    if (FP_COMPONENTS)
+        list(APPEND _extra_args COMPONENTS ${FP_COMPONENTS})
+    endif()
+    if (FP_NAMES)
+        list(APPEND _extra_args NAMES ${FP_NAMES})
+    endif()
+
     # Don't specify the version here, even if FP_VERSION is set - we want to find the package
     # even if the version is too old in order to be able to return the found version back to
     # the Rust code.
-    find_package(${FP_PACKAGE} COMPONENTS ${FP_COMPONENTS})
+    find_package(${FP_PACKAGE} ${_extra_args})
+
     # Package found?
     if (${FP_PACKAGE}_FOUND)
         # Write its name into the JSON
@@ -253,9 +263,10 @@ endfunction()
 #   OUTPUT_FILE: The file to write the JSON output to (required)
 #   COMPONENTS: The components to find (optional)
 #   VERSION: The minimum version of the package to find (optional)
+#   NAMES: Alternative package names to search for (optional)
 ###################################################################################
 function (find_package_target)
-    cmake_parse_arguments(ARG "" "PACKAGE;VERSION;TARGET;OUTPUT_FILE" "COMPONENTS" ${ARGN})
+    cmake_parse_arguments(ARG "" "PACKAGE;VERSION;TARGET;OUTPUT_FILE" "COMPONENTS;NAMES" ${ARGN})
     if (NOT ARG_PACKAGE)
         message(FATAL_ERROR "PACKAGE argument is not set")
     endif()
@@ -266,9 +277,17 @@ function (find_package_target)
         message(FATAL_ERROR "OUTPUT_FILE argument is not set")
     endif()
 
+    set(_extra_args)
+    if (ARG_COMPONENTS)
+        list(APPEND _extra_args COMPONENTS ${ARG_COMPONENTS})
+    endif()
+    if (ARG_NAMES)
+        list(APPEND _extra_args NAMES ${ARG_NAMES})
+    endif()
+
     # It's safe to require the version here, we already found the package before and established
     # the version is recent enough.
-    find_package(${ARG_PACKAGE} ${ARG_VERSION} COMPONENTS ${ARG_COMPONENTS})
+    find_package(${ARG_PACKAGE} ${ARG_VERSION} ${_extra_args})
     if (${ARG_PACKAGE}_FOUND)
         resolve_deps_recursively(
             TARGET ${ARG_TARGET}
@@ -293,10 +312,11 @@ endfunction()
 #   OUTPUT_FILE: The file to write the JSON output to (required)
 #   COMPONENTS: The components to find (optional)
 #   VERSION: The minimum version of the package to find (optional)
+#   NAMES: Alternative package names to search for (optional)
 ###################################################################################
 
 function (find_target_property)
-    cmake_parse_arguments(ARG "" "PACKAGE;VERSION;TARGET;PROPERTY;OUTPUT_FILE" "COMPONENTS" ${ARGN})
+    cmake_parse_arguments(ARG "" "PACKAGE;VERSION;TARGET;PROPERTY;OUTPUT_FILE" "COMPONENTS;NAMES" ${ARGN})
     if (NOT ARG_PACKAGE)
         message(FATAL_ERROR "PACKAGE argument is not set")
     endif()
@@ -310,9 +330,18 @@ function (find_target_property)
         message(FATAL_ERROR "OUTPUT_FILE argument is not set")
     endif()
 
+    set(_extra_args)
+    if (ARG_COMPONENTS)
+        list(APPEND _extra_args COMPONENTS ${ARG_COMPONENTS})
+    endif()
+    if (ARG_NAMES)
+        list(APPEND _extra_args NAMES ${ARG_NAMES})
+    endif()
+
     # It's safe to require the version here, we already found the package before and
     # established version is recent enough.
-    find_package(${ARG_PACKAGE} ${ARG_VERSION} COMPONENTS ${ARG_COMPONENTS})
+    find_package(${ARG_PACKAGE} ${ARG_VERSION} ${_extra_args})
+
     if (${ARG_PACKAGE}_FOUND)
         get_target_property(prop_value ${ARG_TARGET} ${ARG_PROPERTY})
         set(json "{}")
@@ -345,6 +374,7 @@ if (DEFINED TARGET AND DEFINED PROPERTY)
     find_target_property(
         PACKAGE ${PACKAGE}
         COMPONENTS "${COMPONENTS}"
+        NAMES "${NAMES}"
         VERSION ${VERSION}
         TARGET ${TARGET}
         PROPERTY ${PROPERTY}
@@ -354,6 +384,7 @@ elseif (DEFINED TARGET)
     find_package_target(
         PACKAGE ${PACKAGE}
         COMPONENTS "${COMPONENTS}"
+        NAMES "${NAMES}"
         VERSION ${VERSION}
         TARGET ${TARGET}
         OUTPUT_FILE ${OUTPUT_FILE}
@@ -362,6 +393,7 @@ else()
     find_package_wrapper(
         PACKAGE ${PACKAGE}
         COMPONENTS "${COMPONENTS}"
+        NAMES "${NAMES}"
         VERSION ${VERSION}
         OUTPUT_FILE ${OUTPUT_FILE}
     )

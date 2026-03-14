@@ -308,3 +308,31 @@ fn test_find_with_asan() {
         .any(|line| line == "cargo:rustc-link-lib=dylib=asan"));
 }
 
+#[test]
+#[serial]
+#[cfg(target_os = "linux")]
+fn test_find_with_names() {
+    let _tmpdir = common::set_outdir();
+    let _profile = common::set_profile(common::Profile::Release);
+    let _cmake_prefix = common::use_test_cmake_prefix();
+
+    // Finding with an alias name that doesn't have a config file should fail
+    match find_package("WithNamesAlias")
+        .verbose()
+        .find()
+        .expect_err("Should not find WithNamesAlias without NAMES")
+    {
+        Error::PackageNotFound => {}
+        err => panic!("Unexpected error: expected PackageNotFound, got {:?}", err),
+    }
+
+    // Finding with NAMES that includes the actual config name should succeed
+    let package = find_package("WithNamesAlias")
+        .names(["WithNames"])
+        .verbose()
+        .find()
+        .expect("Failed to find WithNamesAlias with NAMES");
+    assert_eq!(package.name, "WithNamesAlias");
+    assert_eq!(package.version, Some("1.0.0".try_into().unwrap()));
+    assert_eq!(package.names, Some(vec!["WithNames".into()]));
+}
