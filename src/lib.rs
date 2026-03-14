@@ -117,6 +117,8 @@ pub struct CMakePackage {
     pub version: Option<Version>,
     /// Components of the package, as requested by the user in [`find_package()`]
     pub components: Option<Vec<String>>,
+    /// Alternative names for the package, as requested by the user in [`find_package()`]
+    pub names: Option<Vec<String>>,
 }
 
 impl CMakePackage {
@@ -126,6 +128,7 @@ impl CMakePackage {
         name: String,
         version: Option<Version>,
         components: Option<Vec<String>>,
+        names: Option<Vec<String>>,
         verbose: bool,
     ) -> Self {
         Self {
@@ -134,6 +137,7 @@ impl CMakePackage {
             name,
             version,
             components,
+            names,
             verbose,
         }
     }
@@ -305,8 +309,9 @@ pub struct FindPackageBuilder {
     name: String,
     version: Option<Version>,
     components: Option<Vec<String>>,
+    names: Option<Vec<String>>,
     verbose: bool,
-    prefix_paths: Option<Vec<PathBuf>>
+    prefix_paths: Option<Vec<PathBuf>>,
 }
 
 impl FindPackageBuilder {
@@ -315,8 +320,9 @@ impl FindPackageBuilder {
             name,
             version: None,
             components: None,
+            names: None,
             verbose: false,
-            prefix_paths: None
+            prefix_paths: None,
         }
     }
 
@@ -348,6 +354,27 @@ impl FindPackageBuilder {
         }
     }
 
+    /// Optionally specifies alternative package names to search for.
+    /// See the documentation on CMake's [`find_package()`][cmake_find_package] function
+    /// and how it treats the `NAMES` argument.
+    ///
+    /// [cmake_find_package]: https://cmake.org/cmake/help/latest/command/find_package.html
+    pub fn names<S, I>(self, names: I) -> Self
+    where
+        S: Into<String>,
+        I: IntoIterator<Item = S>,
+    {
+        let names: Vec<_> = names.into_iter().map(Into::into).collect();
+        if names.is_empty() {
+            return self;
+        }
+
+        Self {
+            names: Some(names),
+            ..self
+        }
+    }
+
     /// Enable verbose output.
     /// This will redirect output from actual execution of the `cmake` command to the standard output
     /// and standard error of the build script.
@@ -371,7 +398,14 @@ impl FindPackageBuilder {
     /// Tries to find the CMake package on the system.
     /// Returns a [`CMakePackage`] instance if the package is found, otherwise an error.
     pub fn find(self) -> Result<CMakePackage, cmake::Error> {
-        cmake::find_package(self.name, self.version, self.components, self.verbose, self.prefix_paths)
+        cmake::find_package(
+            self.name,
+            self.version,
+            self.components,
+            self.names,
+            self.verbose,
+            self.prefix_paths,
+        )
     }
 }
 

@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-use std::{error, fmt};
 use crate::version::{Version, VersionError};
 use crate::{CMakePackage, CMakeTarget};
+use std::{error, fmt};
 
 use itertools::Itertools;
 use serde::Deserialize;
@@ -172,8 +172,9 @@ pub(crate) fn find_package(
     name: String,
     version: Option<Version>,
     components: Option<Vec<String>>,
+    names: Option<Vec<String>>,
     verbose: bool,
-    prefix_paths: Option<Vec<PathBuf>>
+    prefix_paths: Option<Vec<PathBuf>>,
 ) -> Result<CMakePackage, Error> {
     // Find cmake or panic
     let cmake = find_cmake()?;
@@ -194,17 +195,26 @@ pub(crate) fn find_package(
         .arg(format!("-DCMAKE_MIN_VERSION={CMAKE_MIN_VERSION}"))
         .arg(format!("-DPACKAGE={}", name))
         .arg(format!("-DOUTPUT_FILE={}", output_file.display()))
-        .arg(format!("-DCMAKE_PREFIX_PATH={}", prefix_paths
-            .unwrap_or_default()
-            .into_iter()
-            .map(|path| path.display().to_string())
-            .join(";")))
-        .arg(format!("-DCMAKE_FIND_DEBUG_MODE={}", if verbose { "TRUE" } else { "FALSE" }));
+        .arg(format!(
+            "-DCMAKE_PREFIX_PATH={}",
+            prefix_paths
+                .unwrap_or_default()
+                .into_iter()
+                .map(|path| path.display().to_string())
+                .join(";")
+        ))
+        .arg(format!(
+            "-DCMAKE_FIND_DEBUG_MODE={}",
+            if verbose { "TRUE" } else { "FALSE" }
+        ));
     if let Some(version) = version {
         command.arg(format!("-DVERSION={}", version));
     }
     if let Some(components) = components {
         command.arg(format!("-DCOMPONENTS={}", components.join(";")));
+    }
+    if let Some(ref names) = names {
+        command.arg(format!("-DNAMES={}", names.join(";")));
     }
     command.output().map_err(Error::IO)?;
 
@@ -238,6 +248,7 @@ pub(crate) fn find_package(
         package_name,
         package_version,
         package.components,
+        names,
         verbose,
     ))
 }
@@ -464,6 +475,9 @@ pub(crate) fn find_target(
     if let Some(components) = &package.components {
         command.arg(format!("-DCOMPONENTS={}", components.join(";")));
     }
+    if let Some(names) = &package.names {
+        command.arg(format!("-DNAMES={}", names.join(";")));
+    }
     command.output().ok()?;
 
     // Read from the generated JSON file
@@ -515,6 +529,9 @@ pub(crate) fn target_property(
     }
     if let Some(components) = &package.components {
         command.arg(format!("-DCOMPONENTS={}", components.join(";")));
+    }
+    if let Some(names) = &package.names {
+        command.arg(format!("-DNAMES={}", names.join(";")));
     }
     command.output().ok()?;
 
